@@ -22,6 +22,12 @@ public class VanillaLRUCacheTest {
 	}
 	
 	@Test
+	public void testCacheSizeZero() {
+		
+		assertThrows(AssertionError.class, () -> cache = new VanillaLRUCache<>(0));
+	}
+	
+	@Test
 	public void testClearCache() {
 		
 		cache = new VanillaLRUCache<>(5);
@@ -134,7 +140,6 @@ public class VanillaLRUCacheTest {
 		
 		assertThrows(EmptyCacheException.class,  () -> cache.getKeys());
 	}
-	
 	
 
 }
