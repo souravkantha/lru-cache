@@ -31,7 +31,7 @@ public class VanillaLRUCache<T> implements AbstractCache<T> {
 		this.cacheSize = cacheSize;
 		cacheKeyCount = 0;
 		this.cacheMap = new HashMap<>(this.cacheSize);
-		head = tail = null;
+		this.head = this.tail = null;
 		
 	}
 
@@ -47,30 +47,24 @@ public class VanillaLRUCache<T> implements AbstractCache<T> {
 		
 			PageNode<T> page = new PageNode<>(key,val);
 			
-			if(this.head == null && this.tail == null) {
+			if (this.cacheKeyCount + 1 <= this.cacheSize) {
 				
-				this.head = this.tail = page;
-				this.head.setNext(null);
-				this.head.setPrev(null);
-				this.tail.setNext(null);
-				this.tail.setPrev(null);
-				
-			} else {
-				
-				tail = page;
-				tail.setPrev(head);
-				tail.setNext(null);
-				head.setPrev(null);
-				head.setNext(tail);
-				
-			}
-			
-			if (this.cacheKeyCount + 1 <= this.cacheSize ) {
-				
+				if (this.head == null && this.tail == null) {
+
+					this.head = this.tail = page;
+
+				} else {
+
+					tail.setNext(page);
+					tail.getNext().setPrev(tail);
+					tail = page;
+
+				}
+
 				this.cacheKeyCount++;
-				
+
 			} else {
-				
+
 				removeLastNodeAndAddNewNode(page);
 				
 			}
@@ -101,7 +95,7 @@ public class VanillaLRUCache<T> implements AbstractCache<T> {
 	@Override
 	public List<String> getKeys() throws EmptyCacheException {
 	
-		if ((head = tail) == null) 
+		if (this.head == null && this.tail == null) 
 			 throw new EmptyCacheException(ErrorCodes.ERR002, "Cache is empty");
 		
 		List<String> keys = new ArrayList<>();
@@ -118,30 +112,39 @@ public class VanillaLRUCache<T> implements AbstractCache<T> {
 		
 	}
 	
-	private void removeLastNodeAndAddNewNode(PageNode<T> newNode) {
+	public Integer getCacheSize() {
 		
+		return this.cacheSize;
+	}
+	
+	public Integer getCacheKeyCount() {
+		
+		return this.cacheKeyCount;
+	}
+	
+	private void removeLastNodeAndAddNewNode(PageNode<T> newNode) {
+
 		PageNode<T> oldTail = tail;
 
-		if(this.cacheKeyCount > 1) {
+		if (this.cacheKeyCount > 1) {
 			
-			tail.getPrev().setNext(null);
+			tail = tail.getPrev();
+			tail.setNext(null);
 			
-			newNode.setPrev(null);
 			newNode.setNext(head);
-			
 			head.setPrev(newNode);
 			
+			head = newNode;
+
 		} else {
-			
-			head = tail = newNode;
+
+			this.head = this.tail = newNode;
 		}
-		
 
 		this.cacheMap.remove(oldTail.getKey());
 		oldTail = null;
-		
+
 	}
-	
 	
 
 }
