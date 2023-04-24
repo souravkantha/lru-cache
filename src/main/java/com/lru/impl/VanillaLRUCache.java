@@ -71,7 +71,7 @@ public class VanillaLRUCache<T> implements AbstractCache<T> {
 				
 			} else {
 				
-				removeLastNodeAndNewNode(page);
+				removeLastNodeAndAddNewNode(page);
 				
 			}
 			
@@ -118,7 +118,7 @@ public class VanillaLRUCache<T> implements AbstractCache<T> {
 		
 	}
 	
-	private void removeLastNodeAndNewNode(PageNode<T> newNode) {
+	private void removeLastNodeAndAddNewNode(PageNode<T> newNode) {
 		
 		PageNode<T> oldTail = tail;
 
