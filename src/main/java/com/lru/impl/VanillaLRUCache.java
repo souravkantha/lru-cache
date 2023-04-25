@@ -1,12 +1,12 @@
 package com.lru.impl;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import com.lru.constants.ErrorCodes;
 import com.lru.datatypes.PageNode;
+import com.lru.datatypes.PageNodeList;
 import com.lru.exceptions.EmptyCacheException;
 import com.lru.exceptions.PageNotFoundException;
 import com.lru.interfaces.AbstractCache;
@@ -19,10 +19,7 @@ public class VanillaLRUCache<T> implements AbstractCache<T> {
 	
 	private Map<String, PageNode<T>> cacheMap;
 	
-	private PageNode<T> head;
-	
-	private PageNode<T> tail;
-	
+	private PageNodeList<T> pageNodeList;
 	
 	public VanillaLRUCache(Integer cacheSize) {
 		
@@ -31,7 +28,8 @@ public class VanillaLRUCache<T> implements AbstractCache<T> {
 		this.cacheSize = cacheSize;
 		cacheKeyCount = 0;
 		this.cacheMap = new HashMap<>(this.cacheSize);
-		this.head = this.tail = null;
+		this.pageNodeList = new PageNodeList<>();
+		
 		
 	}
 
@@ -49,23 +47,15 @@ public class VanillaLRUCache<T> implements AbstractCache<T> {
 			
 			if (this.cacheKeyCount + 1 <= this.cacheSize) {
 				
-				if (this.head == null && this.tail == null) {
-
-					this.head = this.tail = page;
-
-				} else {
-
-					tail.setNext(page);
-					tail.getNext().setPrev(tail);
-					tail = page;
-
-				}
+				this.pageNodeList.add(page);
 
 				this.cacheKeyCount++;
 
 			} else {
 
-				removeLastNodeAndAddNewNode(page);
+				final String key2BEvicted = 
+						this.pageNodeList.removeLastNodeAndAddNewNode(page, this.cacheKeyCount);
+				this.cacheMap.remove(key2BEvicted);
 				
 			}
 			
@@ -78,6 +68,10 @@ public class VanillaLRUCache<T> implements AbstractCache<T> {
 		if (!this.cacheMap.containsKey(key)) 
 			 throw new PageNotFoundException(ErrorCodes.ERR001, "Page Not found in cache");
 		
+		PageNode<T> currNode = this.cacheMap.get(key);
+		
+		this.pageNodeList.rearrange(currNode);
+		
 		return this.cacheMap.get(key).getData();
 		
 	}
@@ -86,7 +80,7 @@ public class VanillaLRUCache<T> implements AbstractCache<T> {
 	public void clear() {
 		
 		this.cacheMap.clear();
-		this.head = this.tail = null;
+		this.pageNodeList.clear();
 		this.cacheKeyCount = 0;
 		
 	}
@@ -95,20 +89,10 @@ public class VanillaLRUCache<T> implements AbstractCache<T> {
 	@Override
 	public List<String> getKeys() throws EmptyCacheException {
 	
-		if (this.head == null && this.tail == null) 
+		if (this.pageNodeList.isEmpty()) 
 			 throw new EmptyCacheException(ErrorCodes.ERR002, "Cache is empty");
 		
-		List<String> keys = new ArrayList<>();
-		
-		PageNode<T> tmp = this.head;
-		
-		while (tmp != null) {
-			keys.add(tmp.getKey());
-			tmp = tmp.getNext();
-			
-		}
-		
-		return keys;
+		return this.pageNodeList.getKeys();
 		
 	}
 	
@@ -120,30 +104,6 @@ public class VanillaLRUCache<T> implements AbstractCache<T> {
 	public Integer getCacheKeyCount() {
 		
 		return this.cacheKeyCount;
-	}
-	
-	private void removeLastNodeAndAddNewNode(PageNode<T> newNode) {
-
-		PageNode<T> oldTail = tail;
-
-		if (this.cacheKeyCount > 1) {
-			
-			tail = tail.getPrev();
-			tail.setNext(null);
-			
-			newNode.setNext(head);
-			head.setPrev(newNode);
-			
-			head = newNode;
-
-		} else {
-
-			this.head = this.tail = newNode;
-		}
-
-		this.cacheMap.remove(oldTail.getKey());
-		oldTail = null;
-
 	}
 	
 

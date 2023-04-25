@@ -117,6 +117,37 @@ public class VanillaLRUCacheTest {
 	}
 	
 	@Test
+	public void testGetElement() {
+		
+		cache = new VanillaLRUCache<>(3);
+		
+		cache.set("foo1", "bar1");
+		cache.set("foo2", "bar2");
+		cache.set("foo3", "bar3");
+		
+		String val = cache.get("foo1");
+		
+		assertEquals("bar1", val);
+		
+		cache.get("foo2"); // rearrange should happen and foo2 should be in front
+		
+		List<String> keys = cache.getKeys();
+		
+		assertEquals("foo2", keys.get(0));
+		assertEquals("foo1", keys.get(1));
+		assertEquals("foo3", keys.get(2));
+		
+		cache.get("foo3"); // rearrange should happen and foo3 should be in front
+		
+		keys = cache.getKeys();
+		
+		assertEquals("foo3", keys.get(0));
+		assertEquals("foo2", keys.get(1));
+		assertEquals("foo1", keys.get(2));
+
+	}
+	
+	@Test
 	public void testUnknownCacheKey() {
 		
 		cache = new VanillaLRUCache<>(1);
