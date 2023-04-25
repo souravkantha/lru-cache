@@ -1,8 +1,8 @@
 package com.lru.impl;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.lru.constants.ErrorCodes;
 import com.lru.datatypes.PageNode;
@@ -27,7 +27,7 @@ public class VanillaLRUCache<T> implements AbstractCache<T> {
 		
 		this.cacheSize = cacheSize;
 		cacheKeyCount = 0;
-		this.cacheMap = new HashMap<>(this.cacheSize);
+		this.cacheMap = new ConcurrentHashMap<>(this.cacheSize);
 		this.pageNodeList = new PageNodeList<>();
 		
 		

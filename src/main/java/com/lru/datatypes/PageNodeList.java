@@ -2,12 +2,17 @@ package com.lru.datatypes;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-public class PageNodeList<T> {
+public final class PageNodeList<T> {
 	
 	private PageNode<T> head;
 	
 	private PageNode<T> tail;
+	
+	private ReadWriteLock lock = new ReentrantReadWriteLock();
+	
 	
 	public PageNodeList() {
 		
@@ -21,10 +26,15 @@ public class PageNodeList<T> {
 			this.head = this.tail = page;
 
 		} else {
+			lock.writeLock().lock();
+			try {
+				tail.setNext(page);
+				tail.getNext().setPrev(tail);
+				tail = page;
+			} finally {
+				lock.writeLock().unlock();
+			}
 			
-			tail.setNext(page);
-			tail.getNext().setPrev(tail);
-			tail = page;
 
 		}
 		
@@ -60,13 +70,20 @@ public class PageNodeList<T> {
 
 		if (cacheKeyCount > 1) {
 			
-			tail = tail.getPrev();
-			tail.setNext(null);
+			lock.writeLock().lock();
+			try {
 			
-			newNode.setNext(head);
-			head.setPrev(newNode);
+				tail = tail.getPrev();
+				tail.setNext(null);
+				
+				newNode.setNext(head);
+				head.setPrev(newNode);
+				
+				head = newNode;
 			
-			head = newNode;
+			} finally {
+				lock.writeLock().unlock();
+			}
 
 		} else {
 
@@ -83,15 +100,21 @@ public class PageNodeList<T> {
 		
 		if (!accessedNode.equals(this.head)) {
 			
-			accessedNode.getPrev().setNext(accessedNode.getNext());
+			lock.writeLock().lock();
+			try {
 			
-			if (accessedNode.getNext() != null) 
-				accessedNode.getNext().setPrev(accessedNode.getPrev());
-			
-			accessedNode.setNext(this.head);
-			this.head.setPrev(accessedNode);
-			
-			this.head = accessedNode;
+				accessedNode.getPrev().setNext(accessedNode.getNext());
+				
+				if (accessedNode.getNext() != null) 
+					accessedNode.getNext().setPrev(accessedNode.getPrev());
+				
+				accessedNode.setNext(this.head);
+				this.head.setPrev(accessedNode);
+				
+				this.head = accessedNode;
+			} finally {
+				lock.writeLock().unlock();
+			}
 			
 		}
 		
@@ -103,10 +126,17 @@ public class PageNodeList<T> {
 
 		PageNode<T> tmp = this.getFront();
 
-		while (tmp != null) {
-			keys.add(tmp.getKey());
-			tmp = tmp.getNext();
-
+		lock.readLock().lock();
+		
+		try {
+		
+			while (tmp != null) {
+				keys.add(tmp.getKey());
+				tmp = tmp.getNext();
+	
+			}
+		} finally {
+			lock.readLock().unlock();
 		}
 
 		return keys;
