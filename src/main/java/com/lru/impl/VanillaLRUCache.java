@@ -68,9 +68,9 @@ public class VanillaLRUCache<T> implements AbstractCache<T> {
 		if (!this.cacheMap.containsKey(key)) 
 			 throw new PageNotFoundException(ErrorCodes.ERR001, "Page Not found in cache");
 		
-		PageNode<T> currNode = this.cacheMap.get(key);
+		PageNode<T> accessedNode = this.cacheMap.get(key);
 		
-		this.pageNodeList.rearrange(currNode);
+		this.pageNodeList.rearrange(accessedNode);
 		
 		return this.cacheMap.get(key).getData();
 		

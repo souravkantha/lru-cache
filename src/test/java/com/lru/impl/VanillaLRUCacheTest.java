@@ -12,6 +12,10 @@ import com.lru.exceptions.PageNotFoundException;
 public class VanillaLRUCacheTest {
 	
 	VanillaLRUCache<String> cache = null;
+	
+	VanillaLRUCache<String> loadWriteCache = new VanillaLRUCache<>(3);
+	
+	VanillaLRUCache<String> loadReadCache = new VanillaLRUCache<>(3);
 
 	@Test
 	public void testCacheSize() {
@@ -71,15 +75,15 @@ public class VanillaLRUCacheTest {
 	@Test
 	public void testAddElementsAndEviction() {
 		
-		cache = new VanillaLRUCache<>(3);
 		
-		cache.set("foo1", "bar1");
-		cache.set("foo2", "bar2");
-		cache.set("foo3", "bar3");
 		
-		cache.set("foo4", "bar4");
+		loadWriteCache.set("foo1", "bar1");
+		loadWriteCache.set("foo2", "bar2");
+		loadWriteCache.set("foo3", "bar3");
 		
-		List<String> keys = cache.getKeys();
+		loadWriteCache.set("foo4", "bar4");
+		
+		List<String> keys = loadWriteCache.getKeys();
 		
 		assertEquals(3, keys.size());
 		
@@ -87,9 +91,9 @@ public class VanillaLRUCacheTest {
 		assertEquals("foo1", keys.get(1));
 		assertEquals("foo2", keys.get(2));
 		
-		cache.set("foo5", "bar5");
+		loadWriteCache.set("foo5", "bar5");
 		
-		keys = cache.getKeys();
+		keys = loadWriteCache.getKeys();
 		
 		assertEquals(3, keys.size());
 		
@@ -119,27 +123,25 @@ public class VanillaLRUCacheTest {
 	@Test
 	public void testGetElement() {
 		
-		cache = new VanillaLRUCache<>(3);
+		loadReadCache.set("foo1", "bar1");
+		loadReadCache.set("foo2", "bar2");
+		loadReadCache.set("foo3", "bar3");
 		
-		cache.set("foo1", "bar1");
-		cache.set("foo2", "bar2");
-		cache.set("foo3", "bar3");
-		
-		String val = cache.get("foo1");
+		String val = loadReadCache.get("foo1");
 		
 		assertEquals("bar1", val);
 		
-		cache.get("foo2"); // rearrange should happen and foo2 should be in front
+		loadReadCache.get("foo2"); // rearrange should happen and foo2 should be in front
 		
-		List<String> keys = cache.getKeys();
+		List<String> keys = loadReadCache.getKeys();
 		
 		assertEquals("foo2", keys.get(0));
 		assertEquals("foo1", keys.get(1));
 		assertEquals("foo3", keys.get(2));
 		
-		cache.get("foo3"); // rearrange should happen and foo3 should be in front
+		loadReadCache.get("foo3"); // rearrange should happen and foo3 should be in front
 		
-		keys = cache.getKeys();
+		keys = loadReadCache.getKeys();
 		
 		assertEquals("foo3", keys.get(0));
 		assertEquals("foo2", keys.get(1));
