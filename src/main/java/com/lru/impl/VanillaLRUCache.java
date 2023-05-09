@@ -31,7 +31,7 @@ public class VanillaLRUCache<T> implements AbstractCache<T> {
 		this.pageNodeList = new PageNodeList<>();
 		
 		
-	} 
+	}     
 
 	@Override
 	public void set(String key, T val) {
